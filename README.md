@@ -24,3 +24,5 @@ although that's a bit verbose.  going to do some work to see how to make this ea
 import type { FBAInboundEligibility } from 'ts-amz-spapi';
 // FBAInboundEligibility.definitions["ItemEligibilityPreview"]["program"] = 'INBOUND' | 'COMMINGLING'
 ```
+
+... this is still more verbose than I would like, but will use this for a little bit to see how it works
