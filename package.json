@@ -1,0 +1,19 @@
+{
+  "name": "ts-amz-spapi",
+  "version": "1.0.0",
+  "description": "TypeScript interfaces for Amazon SP-API, derived from running openapi-typescript on selling-partner-api-models",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ericblade/ts-amz-spapi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ericblade/ts-amz-spapi/issues"
+  },
+  "homepage": "https://github.com/ericblade/ts-amz-spapi#readme"
+}
