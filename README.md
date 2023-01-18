@@ -17,3 +17,10 @@ import type { definitions as FBAInboundDefinitions } from 'ts-amz-spapi/schemas/
 ```
 
 although that's a bit verbose.  going to do some work to see how to make this easier.
+
+... you can now use
+
+```typescript
+import type { FBAInboundEligibility } from 'ts-amz-spapi';
+// FBAInboundEligibility.definitions["ItemEligibilityPreview"]["program"] = 'INBOUND' | 'COMMINGLING'
+```

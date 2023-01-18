@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "TypeScript interfaces for Amazon SP-API, derived from running openapi-typescript on selling-partner-api-models",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
