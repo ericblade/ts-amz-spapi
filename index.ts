@@ -51,10 +51,21 @@ interface MoneyType {
     Amount?: number;
 }
 
+type ProductCondition = 'New' | 'Used' | 'Collectible' | 'Refurbished' | 'Club';
+// note that the documentation says the SubConditions have spaces between words, but actual use does not indicate that.
+type ProductSubCondition = 'New' | 'Mint' | 'VeryGood' | 'Good' | 'Acceptable' | 'Poor' | 'Club' | 'OEM' | 'Warranty' | 'RefurbishedWarranty' | 'Refurbished' | 'OpenBox' | 'Other';
 // Begin Messy Monkey Patch
 // this is *messy* and there may be a better way to do it, but this monkeypatches a union for currency code into the TradeInValue field.
 // If I can find an easier way to do this, I want to patch it into everywhere that uses CurrencyCode...
 export namespace ProductPricing {
+    // note that CompetitivePriceType and CompetitivePricingType are two different fields
+    interface CompetitivePriceType extends Omit<AmzProductPricing.definitions["CompetitivePriceType"], 'condition' | 'subcondition' | 'CompetitivePriceId'> {
+        condition?: ProductCondition;
+        subcondition?: ProductSubCondition;
+        // 1 for New Buy Box, 2 for Used Buy Box
+        CompetitivePriceId: "1" | "2";
+    }
+    // note that CompetitivePriceType and CompetitivePricingType are two different fields
     interface CompetitivePricingType extends Omit<AmzProductPricing.definitions["CompetitivePricingType"], 'TradeInValue'> {
         TradeInValue?: MoneyType;
     }
@@ -65,6 +76,7 @@ export namespace ProductPricing {
         MoneyType: MoneyType,
         Product: Product,
         CompetitivePricingType: CompetitivePricingType;
+        CompetitivePriceType: CompetitivePriceType;
     }
     export interface paths extends AmzProductPricing.paths {}
     export interface operations extends AmzProductPricing.operations {}

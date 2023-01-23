@@ -45,7 +45,14 @@ interface MoneyType {
     /** @description The monetary value. */
     Amount?: number;
 }
+type ProductCondition = 'New' | 'Used' | 'Collectible' | 'Refurbished' | 'Club';
+type ProductSubCondition = 'New' | 'Mint' | 'VeryGood' | 'Good' | 'Acceptable' | 'Poor' | 'Club' | 'OEM' | 'Warranty' | 'RefurbishedWarranty' | 'Refurbished' | 'OpenBox' | 'Other';
 export declare namespace ProductPricing {
+    interface CompetitivePriceType extends Omit<AmzProductPricing.definitions["CompetitivePriceType"], 'condition' | 'subcondition' | 'CompetitivePriceId'> {
+        condition?: ProductCondition;
+        subcondition?: ProductSubCondition;
+        CompetitivePriceId: "1" | "2";
+    }
     interface CompetitivePricingType extends Omit<AmzProductPricing.definitions["CompetitivePricingType"], 'TradeInValue'> {
         TradeInValue?: MoneyType;
     }
@@ -56,6 +63,7 @@ export declare namespace ProductPricing {
         MoneyType: MoneyType;
         Product: Product;
         CompetitivePricingType: CompetitivePricingType;
+        CompetitivePriceType: CompetitivePriceType;
     }
     export interface paths extends AmzProductPricing.paths {
     }

@@ -5,6 +5,8 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "load-schemas": "npx openapi-typescript@5.0.0 ../selling-partner-api-models/models/**/*.json --output schemas/ && robocopy selling-partner-api-models schemas /s /move",
+    "build": "npm run load-schemas && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
