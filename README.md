@@ -26,3 +26,5 @@ import type { FBAInboundEligibility } from 'ts-amz-spapi';
 ```
 
 ... this is still more verbose than I would like, but will use this for a little bit to see how it works
+
+... 1.0.1 attempts to monkeypatch a currencycode union built from @vendure into the Amazon types

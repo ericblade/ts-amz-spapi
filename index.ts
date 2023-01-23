@@ -16,7 +16,7 @@ export * as Messaging from './schemas/models/messaging-api-model/messaging';
 export * as Notifications from './schemas/models/notifications-api-model/notifications';
 export * as Orders from './schemas/models/orders-api-model/ordersV0';
 export * as ProductFees from './schemas/models/product-fees-api-model/productFeesV0';
-export * as ProductPricing from './schemas/models/product-pricing-api-model/productPricingV0';
+// export * as ProductPricing from './schemas/models/product-pricing-api-model/productPricingV0';
 export * as ProductTypeDefinitions from './schemas/models/product-type-definitions-api-model/definitionsProductTypes_2020-09-01';
 export * as Reports from './schemas/models/reports-api-model/reports_2021-06-30';
 export * as Sales from './schemas/models/sales-api-model/sales';
@@ -37,3 +37,36 @@ export * as VendorInvoices from './schemas/models/vendor-invoices-api-model/vend
 export * as VendorOrders from './schemas/models/vendor-orders-api-model/vendorOrders';
 export * as VendorShipments from './schemas/models/vendor-shipments-api-model/vendorShipments';
 export * as VendorTransactionStatus from './schemas/models/vendor-transaction-status-api-model/vendorTransactionStatus';
+
+import type * as AmzProductPricing from './schemas/models/product-pricing-api-model/productPricingV0';
+
+import type { CurrencyCode } from '@vendure/common/lib/generated-types';
+
+type CurrencyCodeUnion = keyof typeof CurrencyCode;
+// type CurrencyCode = 'USD' | 'CAD' | 'XXX';
+interface MoneyType {
+    /** @description The currency code in ISO 4217 format. */
+    CurrencyCode?: CurrencyCodeUnion;
+    /** @description The monetary value. */
+    Amount?: number;
+}
+
+// Begin Messy Monkey Patch
+// this is *messy* and there may be a better way to do it, but this monkeypatches a union for currency code into the TradeInValue field.
+// If I can find an easier way to do this, I want to patch it into everywhere that uses CurrencyCode...
+export namespace ProductPricing {
+    interface CompetitivePricingType extends Omit<AmzProductPricing.definitions["CompetitivePricingType"], 'TradeInValue'> {
+        TradeInValue?: MoneyType;
+    }
+    interface Product extends Omit<AmzProductPricing.definitions["Product"], 'CompetitivePricing'> {
+        CompetitivePricing?: CompetitivePricingType;
+    }
+    export interface definitions extends Omit<AmzProductPricing.definitions, 'MoneyType' | 'CompetitivePricingType' | 'Product' >{
+        MoneyType: MoneyType,
+        Product: Product,
+        CompetitivePricingType: CompetitivePricingType;
+    }
+    export interface paths extends AmzProductPricing.paths {}
+    export interface operations extends AmzProductPricing.operations {}
+    export interface external extends AmzProductPricing.external {}
+}
