@@ -1086,11 +1086,7 @@ export interface definitions {
   };
   /** @description An event related to a capacity reservation billing charge. */
   CapacityReservationBillingEvent: {
-    /**
-     * @description Indicates the type of transaction.
-     *
-     * Example: "FBA Inventory Fee"
-     */
+    /** @description Indicates the type of transaction. For example, FBA Inventory Fee */
     TransactionType?: string;
     /** @description The date and time when the financial event was posted. */
     PostedDate?: definitions["Date"];

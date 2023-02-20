@@ -130,6 +130,33 @@ export interface paths {
      */
     patch: operations["updateVerificationStatus"];
   };
+  "/orders/v0/orders/{orderId}/approvals": {
+    /**
+     * Returns detailed order items approvals information for the order specified. If NextToken is provided, it's used to retrieve the next page of order items approvals.
+     *
+     * **Usage Plans:**
+     *
+     * | Plan type | Rate (requests per second) | Burst |
+     * | ---- | ---- | ---- |
+     * |Default| 0.5 | 30 |
+     * |Selling partner specific| Variable | Variable |
+     *
+     * The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see "Usage Plans and Rate Limits" in the Selling Partner API documentation.
+     */
+    get: operations["getOrderItemsApprovals"];
+    /**
+     * Update the order items approvals for an order that you specify.
+     *
+     * **Usage Plan:**
+     *
+     * | Rate (requests per second) | Burst |
+     * | ---- | ---- |
+     * | 5 | 15 |
+     *
+     * The `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values then those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     */
+    post: operations["updateOrderItemsApprovals"];
+  };
 }
 
 export interface definitions {
@@ -362,6 +389,10 @@ export interface definitions {
     HasRegulatedItems?: boolean;
     /** @description The status of the electronic invoice. */
     ElectronicInvoiceStatus?: definitions["ElectronicInvoiceStatus"];
+    /** @description Set of approval types which applies to at least one order item in the order. */
+    ItemApprovalTypes?: definitions["ItemApprovalType"][];
+    /** @description Subset of all ItemApprovalStatus that are set in at least one of the order items subject to approvals. */
+    ItemApprovalStatus?: definitions["ItemApprovalStatus"][];
   };
   /** @description Buyer information for an order. */
   OrderBuyerInfo: {
@@ -611,6 +642,10 @@ export interface definitions {
     BuyerInfo?: definitions["ItemBuyerInfo"];
     /** @description Information about whether or not a buyer requested cancellation. */
     BuyerRequestedCancel?: definitions["BuyerRequestedCancel"];
+    /** @description Item approval context containing the information regarding the status and progress of the item approval. */
+    ItemApprovalContext?: definitions["ItemApprovalContext"];
+    /** @description A list of serial numbers for electronic products that are shipped to customers. Returned for FBA orders only. */
+    SerialNumbers?: string[];
   };
   /** @description A single order item's buyer information list with the order ID. */
   OrderItemsBuyerInfoList: {
@@ -746,6 +781,116 @@ export interface definitions {
     | "Processing"
     | "Errored"
     | "Accepted";
+  /** @description Defines the approval process types available for order items. */
+  ItemApprovalType: "LEONARDI_APPROVAL";
+  /** @description Defines the possible status of an order item approval. */
+  ItemApprovalStatus:
+    | "PENDING_SELLING_PARTNER_APPROVAL"
+    | "PROCESSING_SELLING_PARTNER_APPROVAL"
+    | "PENDING_AMAZON_APPROVAL"
+    | "APPROVED"
+    | "APPROVED_WITH_CHANGES"
+    | "DECLINED";
+  /** @description Generic item approval context. Check the applicable restrictions at the specific approval type schemas. */
+  ItemApprovalContext: {
+    /** @description The approval process type required for the order item. */
+    ApprovalType: definitions["ItemApprovalType"];
+    /** @description Current status of the order item approval. */
+    ApprovalStatus: definitions["ItemApprovalStatus"];
+    /** @description List of additional data elements supporting the approval process. Check the applicable restrictions at the specific approval type schemas. */
+    ApprovalSupportData?: definitions["ApprovalSupportDataElementList"];
+  };
+  /** @description List of additional data elements supporting the approval process. Check the applicable restrictions at the specific approval type schemas. */
+  ApprovalSupportDataElementList: definitions["ApprovalSupportDataElement"][];
+  /** @description <Name, Value> tuple to define item approval support data elements. */
+  ApprovalSupportDataElement: {
+    /** @description Name of the approval support element. Allowed names are defined in specific approval types schemas. */
+    Name: string;
+    /** @description String value of the approval support element. */
+    Value: string;
+  };
+  /** @description Generic item approval. Check the applicable restrictions at the specific approval type schemas. */
+  ItemApproval: {
+    /** @description Sequence number of the item approval. Each ItemApproval gets its sequenceId automatically from a monotonic increasing function. */
+    SequenceId: number;
+    /** @description Timestamp when the ItemApproval was recorded by Amazon's internal order approvals system. In ISO 8601 date time format. */
+    Timestamp: string;
+    /** @description High level actors involved in the approval process. */
+    Actor: "SELLING_PARTNER" | "AMAZON";
+    /** @description Person or system that triggers the approval actions on behalf of the actor. */
+    Approver?: string;
+    /** @description Approval action that defines the behavior of the ItemApproval. */
+    ApprovalAction: definitions["ItemApprovalAction"];
+    /** @description Status of approval action. */
+    ApprovalActionProcessStatus: "PROCESSING" | "SUCCESS" | "ERROR";
+    /** @description Optional message to communicate optional additional context about the current status of the approval action. */
+    ApprovalActionProcessStatusMessage?: string;
+  };
+  /** @description This object represents an approval action used by the actors in the order item approval process. Check the applicable restrictions at the specific approval type schemas. */
+  ItemApprovalAction: {
+    /** @description Defines the type of action for the approval. */
+    ActionType: "APPROVE" | "DECLINE" | "APPROVE_WITH_CHANGES";
+    /** @description Comment message to provide optional additional context on the approval action. */
+    Comment?: string;
+    /** @description Changes required for the approval. Each approval type defines the allowed changes valid sub-set in its specific schema. */
+    Changes?: {
+      /** @description Price to be charged to the customer for each unit of the item. If substitutedBy is specified, this value applies to the substitution item. */
+      ItemPrice?: definitions["Money"];
+      /** @description Quantity approved. If substitutedBy is specified, this value applies to the substitution item. */
+      Quantity?: number;
+      /** @description Identifier of the item to substitute this item in the order. */
+      SubstitutedBy?: definitions["ItemIdentifier"];
+    };
+  };
+  /** @description Item identifiers used in the context of approvals operations. */
+  ItemIdentifier: {
+    /** @description Defines the type of identifiers allowed to specify a substitution. */
+    IdentifierType: "ASIN" | "SELLER_SKU" | "EXTERNAL_ID";
+    Identifier: string;
+  };
+  /** @description The response schema for the getOrderApprovalsItems operation. */
+  GetOrderApprovalsResponse: {
+    /** @description The payload for the getOrderItemsApprovals operation. */
+    payload?: definitions["OrderApprovalsResponse"];
+    /** @description One or more unexpected errors occurred during the getOrderItemsApprovals operation. */
+    errors?: definitions["ErrorList"];
+  };
+  /** @description The order items list with approvals along with the order ID. */
+  OrderApprovalsResponse: {
+    /** @description When present and not empty, pass this string token in the next request to return the next response page. */
+    NextToken?: string;
+    /** @description List of OrderItemApprovals. */
+    OrderItemsApprovalsList: definitions["OrderItemApprovals"][];
+  };
+  /** @description List of item approvals gathered during the approval process. */
+  OrderItemApprovals: {
+    /** @description The unique identifier of the order item. */
+    OrderItemId: string;
+    /** @description The approval process type required for the order item. */
+    ApprovalType: definitions["ItemApprovalType"];
+    /** @description Current status of the order item approval. */
+    ApprovalStatus: definitions["ItemApprovalStatus"];
+    ItemApprovals: definitions["ItemApproval"][];
+  };
+  /** @description The request body for the updateOrderItemsApprovals operation. */
+  UpdateOrderApprovalsRequest: {
+    /** @description Person or system that triggers the approval actions on behalf of the actor. */
+    Approver?: string;
+    /** @description A list of item approval requests. */
+    OrderItemsApprovalRequests: definitions["OrderItemApprovalRequest"][];
+  };
+  /** @description Order item apecific approval request. */
+  OrderItemApprovalRequest: {
+    /** @description The unique identifier of the order item. */
+    OrderItemId: string;
+    /** @description Approval action that defines the behavior of the ItemApproval. */
+    ApprovalAction: definitions["ItemApprovalAction"];
+  };
+  /** @description The error response schema for the updateOrderItemsApprovals operation. */
+  UpdateItemsApprovalsErrorResponse: {
+    /** @description One or more unexpected errors occurred during the updateOrderItemsApprovals operation. */
+    errors?: definitions["ErrorList"];
+  };
   /** @description A list of error responses returned when a request is unsuccessful. */
   ErrorList: definitions["Error"][];
   /** @description Error response returned when the request is unsuccessful. */
@@ -855,6 +1000,10 @@ export interface operations {
         IsISPU?: boolean;
         /** The store chain store identifier. Linked to a specific store in a store chain. */
         StoreChainStoreId?: string;
+        /** When set, only return orders that contain items which approval type is contained in the specified approval types. */
+        ItemApprovalTypes?: definitions["ItemApprovalType"][];
+        /** When set, only return orders that contain items which approval status is contained in the specified approval status. */
+        ItemApprovalStatus?: definitions["ItemApprovalStatus"][];
       };
     };
     responses: {
@@ -1372,6 +1521,138 @@ export interface operations {
       503: {
         headers: {};
         schema: definitions["UpdateVerificationStatusErrorResponse"];
+      };
+    };
+  };
+  /**
+   * Returns detailed order items approvals information for the order specified. If NextToken is provided, it's used to retrieve the next page of order items approvals.
+   *
+   * **Usage Plans:**
+   *
+   * | Plan type | Rate (requests per second) | Burst |
+   * | ---- | ---- | ---- |
+   * |Default| 0.5 | 30 |
+   * |Selling partner specific| Variable | Variable |
+   *
+   * The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see "Usage Plans and Rate Limits" in the Selling Partner API documentation.
+   */
+  getOrderItemsApprovals: {
+    parameters: {
+      path: {
+        /** An Amazon-defined order identifier, in 3-7-7 format, e.g. 933-1671587-0818628. */
+        orderId: string;
+      };
+      query: {
+        /** A string token returned in the response of your previous request. */
+        NextToken?: string;
+        /** When set, only return approvals for items which approval type is contained in the specified approval types. */
+        ItemApprovalTypes?: definitions["ItemApprovalType"][];
+        /** When set, only return approvals that contain items which approval status is contained in the specified approval status. */
+        ItemApprovalStatus?: definitions["ItemApprovalStatus"][];
+      };
+    };
+    responses: {
+      /** Success. */
+      200: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** Request has missing or invalid parameters and cannot be parsed. */
+      400: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** Indicates access to the resource is forbidden. Possible reasons include Access Denied, Unauthorized, Expired Token, or Invalid Signature. */
+      403: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** The resource specified does not exist. */
+      404: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** The frequency of requests was greater than allowed. */
+      429: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** An unexpected condition occurred that prevented the server from fulfilling the request. */
+      500: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+      /** Temporary overloading or maintenance of the server. */
+      503: {
+        headers: {};
+        schema: definitions["GetOrderApprovalsResponse"];
+      };
+    };
+  };
+  /**
+   * Update the order items approvals for an order that you specify.
+   *
+   * **Usage Plan:**
+   *
+   * | Rate (requests per second) | Burst |
+   * | ---- | ---- |
+   * | 5 | 15 |
+   *
+   * The `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values then those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+   */
+  updateOrderItemsApprovals: {
+    parameters: {
+      path: {
+        /** An Amazon-defined order identifier, in 3-7-7 format. */
+        orderId: string;
+      };
+      body: {
+        /** The request body for the updateOrderItemsApprovals operation. */
+        payload: definitions["UpdateOrderApprovalsRequest"];
+      };
+    };
+    responses: {
+      /** Success. */
+      204: never;
+      /** Request has missing or invalid parameters and cannot be parsed. */
+      400: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** Indicates that access to the resource is forbidden. Possible reasons include Access Denied, Unauthorized, Expired Token, or Invalid Signature. */
+      403: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** The resource specified does not exist. */
+      404: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** The request size exceeded the maximum accepted size. */
+      413: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** The request payload is in an unsupported format. */
+      415: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** The frequency of requests was greater than allowed. */
+      429: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** An unexpected condition occurred that prevented the server from fulfilling the request. */
+      500: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
+      };
+      /** Temporary overloading or maintenance of the server. */
+      503: {
+        headers: {};
+        schema: definitions["UpdateItemsApprovalsErrorResponse"];
       };
     };
   };

@@ -1,6 +1,6 @@
 {
   "name": "ts-amz-spapi",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "TypeScript interfaces for Amazon SP-API, derived from running openapi-typescript on selling-partner-api-models",
   "main": "index.js",
   "types": "index.d.ts",
@@ -20,6 +20,10 @@
   },
   "homepage": "https://github.com/ericblade/ts-amz-spapi#readme",
   "dependencies": {
-    "@vendure/core": "^1.9.2"
+    "@vendure/core": "^1.9.2",
+    "ajv": "^8.12.0"
+  },
+  "devDependencies": {
+    "superstruct-ts-transformer": "^0.2.3"
   }
 }

@@ -59,17 +59,17 @@ type ProductSubCondition = 'New' | 'Mint' | 'VeryGood' | 'Good' | 'Acceptable' |
 // If I can find an easier way to do this, I want to patch it into everywhere that uses CurrencyCode...
 export namespace ProductPricing {
     // note that CompetitivePriceType and CompetitivePricingType are two different fields
-    interface CompetitivePriceType extends Omit<AmzProductPricing.definitions["CompetitivePriceType"], 'condition' | 'subcondition' | 'CompetitivePriceId'> {
+    export interface CompetitivePriceType extends Omit<AmzProductPricing.definitions["CompetitivePriceType"], 'condition' | 'subcondition' | 'CompetitivePriceId'> {
         condition?: ProductCondition;
         subcondition?: ProductSubCondition;
         // 1 for New Buy Box, 2 for Used Buy Box
         CompetitivePriceId: "1" | "2";
     }
     // note that CompetitivePriceType and CompetitivePricingType are two different fields
-    interface CompetitivePricingType extends Omit<AmzProductPricing.definitions["CompetitivePricingType"], 'TradeInValue'> {
+    export interface CompetitivePricingType extends Omit<AmzProductPricing.definitions["CompetitivePricingType"], 'TradeInValue'> {
         TradeInValue?: MoneyType;
     }
-    interface Product extends Omit<AmzProductPricing.definitions["Product"], 'CompetitivePricing'> {
+    export interface Product extends Omit<AmzProductPricing.definitions["Product"], 'CompetitivePricing'> {
         CompetitivePricing?: CompetitivePricingType;
     }
     export interface definitions extends Omit<AmzProductPricing.definitions, 'MoneyType' | 'CompetitivePricingType' | 'Product' >{
